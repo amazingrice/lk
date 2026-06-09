@@ -4,6 +4,7 @@ import java.util.List
     public int position = 0; 
 
   public String Scanne (String input){
+    if (
     
     
 

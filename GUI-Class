@@ -1,0 +1,22 @@
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+public class GUI{
+    public static void main(String[] args) {
+        JFrame frame = new JFrame("Scanner and Parser");
+        frame.setSize(1000, 800);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setLayout(null);
+        frame.setResizable(false);
+        
+        GridLayout grid = new GridLayout(3, 1);
+        frame.setLayout(grid);
+        
+        frame.add(new JButton("wow"));
+        frame.add(new JButton("woah"));
+        frame.add(new JButton("cool"));
+        
+        frame.setVisible(true);
+    }
+}

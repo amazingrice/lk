@@ -10,12 +10,25 @@ public class GUI{
         frame.setLayout(null);
         frame.setResizable(false);
         
-        GridLayout grid = new GridLayout(3, 1);
-        frame.setLayout(grid);
+        JLabel quell = new JLabel("Quelltext");
         
-        frame.add(new JButton("wow"));
-        frame.add(new JButton("woah"));
-        frame.add(new JButton("cool"));
+        frame.setLayout(new BorderLayout());
+        frame.getContentPane().setBackground(Color.pink);
+        
+        JPanel panel = new JPanel();
+        panel.setBackground(Color.pink);
+        
+        panel.setPreferredSize(new Dimension(400, 600)); 
+
+        JTextArea area = new JTextArea(35, 20);
+        area.setText("hello");
+        
+        JScrollPane scrollPane = new JScrollPane(area);
+        panel.add(scrollPane); 
+        panel.setBorder(BorderFactory.createEmptyBorder(40, 0, 0, 0));
+        
+        frame.add(panel, BorderLayout.WEST);
+        frame.add(quell);
         
         frame.setVisible(true);
     }

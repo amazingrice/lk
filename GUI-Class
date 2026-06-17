@@ -2,34 +2,27 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-public class GUI{
+public class GUI {
     public static void main(String[] args) {
         JFrame frame = new JFrame("Scanner and Parser");
-        frame.setSize(1000, 800);
+        frame.setSize(1000, 600); 
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setLayout(null);
-        frame.setResizable(false);
-        
-        JLabel quell = new JLabel("Quelltext");
-        
-        frame.setLayout(new BorderLayout());
+        frame.setLayout(new BorderLayout(15, 15)); 
+      
         frame.getContentPane().setBackground(Color.pink);
-        
-        JPanel panel = new JPanel();
-        panel.setBackground(Color.pink);
-        
-        panel.setPreferredSize(new Dimension(400, 600)); 
+        ((JPanel)frame.getContentPane()).setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        JTextArea area = new JTextArea(35, 20);
-        area.setText("hello");
+        JPanel centerPanel = new JPanel(new GridLayout(1, 2, 15, 0));
+        centerPanel.setBackground(Color.pink);
+
+        JPanel quellPanel = new JPanel(new BorderLayout(0, 5));
+        quellPanel.setBackground(Color.pink);
+        JLabel quellLabel = new JLabel("Quelltext:");
+        JTextArea quellArea = new JTextArea();
+        quellPanel.add(quellLabel, BorderLayout.NORTH);
+        quellPanel.add(new JScrollPane(quellArea), BorderLayout.CENTER);
         
-        JScrollPane scrollPane = new JScrollPane(area);
-        panel.add(scrollPane); 
-        panel.setBorder(BorderFactory.createEmptyBorder(40, 0, 0, 0));
-        
-        frame.add(panel, BorderLayout.WEST);
-        frame.add(quell);
-        
+        frame.add(centerPanel, BorderLayout.CENTER);
         frame.setVisible(true);
     }
 }

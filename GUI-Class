@@ -21,7 +21,8 @@ public class GUI {
         JTextArea quellArea = new JTextArea();
         quellPanel.add(quellLabel, BorderLayout.NORTH);
         quellPanel.add(new JScrollPane(quellArea), BorderLayout.CENTER);
-        
+
+        centerPanel.add(quellPanel);
         frame.add(centerPanel, BorderLayout.CENTER);
         frame.setVisible(true);
     }

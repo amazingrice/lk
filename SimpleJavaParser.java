@@ -1,217 +1,252 @@
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.List;
 
+public class ParserApp {
 
-public class SimpleJavaParser {
+    // --- 1. TOKENS ---
+    enum TokenType {
+        TYP, NAME, ZAHL,
+        KLAMMER_AUF, KLAMMER_ZU,
+        BLOCK_AUF, BLOCK_ZU,
+        ZUWEISUNGS_OP, SEMIKOLON, PUNKT, EOF
+    }
 
+    static class Token {
+        TokenType type;
+        String value;
 
-   // --- 1. TOKENS ---
-   enum TokenType {
-       TYP, NAME, ZAHL,
-       KLAMMER_AUF, KLAMMER_ZU,
-       BLOCK_AUF, BLOCK_ZU,
-       ZUWEISUNGS_OP, SEMIKOLON, PUNKT, EOF
-   }
+        Token(TokenType type, String value) {
+            this.type = type;
+            this.value = value;
+        }
 
+        @Override
+        public String toString() {
+            return type.name();
+        }
+    }
 
-   static class Token {
-       TokenType type;
-       String value;
+    // --- 2. LEXER (Simple Scanner) ---
+    public static List<Token> tokenize(String input) {
+        List<Token> tokens = new ArrayList<>();
+        if (input == null || input.trim().isEmpty()) return tokens;
 
+        String[] words = input.split("\\s+");
 
-       Token(TokenType type, String value) {
-           this.type = type;
-           this.value = value;
-       }
+        for (String word : words) {
+            switch (word.toLowerCase()) {
+                case "typ":                tokens.add(new Token(TokenType.TYP, word)); break;
+                case "name":               tokens.add(new Token(TokenType.NAME, word)); break;
+                case "klammerauf":         tokens.add(new Token(TokenType.KLAMMER_AUF, word)); break;
+                case "klammerzu":          tokens.add(new Token(TokenType.KLAMMER_ZU, word)); break;
+                case "blockauf":           tokens.add(new Token(TokenType.BLOCK_AUF, word)); break;
+                case "blockzu":            tokens.add(new Token(TokenType.BLOCK_ZU, word)); break;
+                case "zuweisungsoperator": tokens.add(new Token(TokenType.ZUWEISUNGS_OP, word)); break;
+                case "zahl":               tokens.add(new Token(TokenType.ZAHL, word)); break;
+                case "punktoperator":      tokens.add(new Token(TokenType.PUNKT, word)); break;
+                case "semikolon":          tokens.add(new Token(TokenType.SEMIKOLON, word)); break;
+                default:
+                    throw new RuntimeException("Lexer-Fehler: Unbekanntes Wort im String gefunden -> '" + word + "'");
+            }
+        }
 
+        tokens.add(new Token(TokenType.EOF, ""));
+        return tokens;
+    }
 
-       @Override
-       public String toString() {
-           return type.name();
-       }
-   }
+    // --- 3. DER PARSER ---
+    static class Parser {
+        private final List<Token> tokens;
+        private int pos = 0;
+        private final StringBuilder log;
 
+        public Parser(List<Token> tokens, StringBuilder log) {
+            this.tokens = tokens;
+            this.log = log;
+        }
 
-   //(String zu Tokens) von kofi ersetzen lassen bitte
-   public static List<Token> tokenize(String input) {
-       List<Token> tokens = new ArrayList<>();
-       if (input == null || input.trim().isEmpty()) return tokens;
+        private Token current() {
+            if (pos >= tokens.size()) return new Token(TokenType.EOF, "");
+            return tokens.get(pos);
+        }
 
+        private void consume(TokenType expected) {
+            if (current().type == expected) {
+                pos++;
+            } else {
+                throw new RuntimeException("Syntaxfehler an Position " + pos +
+                        ": Erwartet " + expected + ", aber " + current().type + " gefunden.");
+            }
+        }
 
-       //space als snipp
-       String[] words = input.split("\\s+");
+        private boolean match(TokenType type) {
+            return current().type == type;
+        }
 
+        // --- GRAMMATIK-REGELN ---
+        public void parseMethode() {
+            log.append("Parse: Methode\n");
+            consume(TokenType.TYP);
+            consume(TokenType.NAME);
+            consume(TokenType.KLAMMER_AUF);
+            consume(TokenType.KLAMMER_ZU);
+            parseBlock();
+        }
 
-       for (String word : words) {
-           switch (word.toLowerCase()) {
-               case "typ":                tokens.add(new Token(TokenType.TYP, word)); break;
-               case "name":               tokens.add(new Token(TokenType.NAME, word)); break;
-               case "klammerauf":         tokens.add(new Token(TokenType.KLAMMER_AUF, word)); break;
-               case "klammerzu":          tokens.add(new Token(TokenType.KLAMMER_ZU, word)); break;
-               case "blockauf":           tokens.add(new Token(TokenType.BLOCK_AUF, word)); break;
-               case "blockzu":            tokens.add(new Token(TokenType.BLOCK_ZU, word)); break;
-               case "zuweisungsoperator": tokens.add(new Token(TokenType.ZUWEISUNGS_OP, word)); break;
-               case "zahl":               tokens.add(new Token(TokenType.ZAHL, word)); break;
-               case "punktoperator":      tokens.add(new Token(TokenType.PUNKT, word)); break;
-               case "semikolon":          tokens.add(new Token(TokenType.SEMIKOLON, word)); break;
-               default:
-                   throw new RuntimeException("Lexer-Fehler: Unbekanntes Wort im String gefunden -> '" + word + "'");
-           }
-       }
+        public void parseBlock() {
+            log.append("Parse: Block\n");
+            consume(TokenType.BLOCK_AUF);
 
+            while (!match(TokenType.BLOCK_ZU) && !match(TokenType.EOF)) {
+                parseZuweisung();
+            }
 
-       // Am Ende immer ein EOF (End of File) anhängen
-       tokens.add(new Token(TokenType.EOF, ""));
-       return tokens;
-   }
+            consume(TokenType.BLOCK_ZU);
+        }
 
+        public void parseZuweisung() {
+            log.append("Parse: Zuweisung\n");
 
-   // --- 3. DER PARSER ---
+            if (match(TokenType.TYP)) {
+                consume(TokenType.TYP);
+            }
 
+            consume(TokenType.NAME);
+            consume(TokenType.ZUWEISUNGS_OP);
+            parseAusdruck();
+            consume(TokenType.SEMIKOLON);
+        }
 
-   //lege nimm die finale liste und gehe wort für wort durch
-   // bis dinge gefunden sind und abgehakt werden können
-   // bezug auf regeln in der grammatik
-   static class Parser {
-       private final List<Token> tokens;
-       private int pos = 0;
+        public void parseAusdruck() {
+            parseTerm();
+        }
 
+        public void parseTerm() {
+            parseFaktor();
+            if (match(TokenType.PUNKT)) {
+                consume(TokenType.PUNKT);
+                parseTerm();
+            }
+        }
 
-       public Parser(List<Token> tokens) {
-           this.tokens = tokens;
-       }
+        public void parseFaktor() {
+            if (match(TokenType.NAME)) {
+                consume(TokenType.NAME);
+            } else if (match(TokenType.ZAHL)) {
+                consume(TokenType.ZAHL);
+            } else if (match(TokenType.KLAMMER_AUF)) {
+                consume(TokenType.KLAMMER_AUF);
+                parseAusdruck();
+                consume(TokenType.KLAMMER_ZU);
+            } else {
+                throw new RuntimeException("Syntaxfehler im Faktor: Unerwartetes Token " + current().type);
+            }
+        }
+    }
 
+    // --- 4. GUI SETUP ---
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> {
+            JFrame frame = new JFrame("Scanner und Parser App");
+            frame.setSize(1200, 600);
+            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            frame.setLayout(new BorderLayout(15, 15)); 
+          
+            frame.getContentPane().setBackground(Color.pink);
+            ((JPanel)frame.getContentPane()).setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-       private Token current() {
-           if (pos >= tokens.size()) return new Token(TokenType.EOF, "");
-           return tokens.get(pos);
-       }
-       //was wird jetzt erwartet?
-       private void consume(TokenType expected) {
-           if (current().type == expected) {
-               pos++;
-           } else {
-               throw new RuntimeException("Syntaxfehler an Position " + pos +
-                       ": Erwartet " + expected + ", aber " + current().type + " gefunden.");
-           }
-       }
-       //ist das aktuelle wort das was wir suchen?
-       private boolean match(TokenType type) {
-           return current().type == type;
-       }
+            // Layout auf 3 Spalten geändert (1 Zeile, 3 Spalten)
+            JPanel centerPanel = new JPanel(new GridLayout(1, 3, 15, 0));
+            centerPanel.setBackground(Color.pink);
 
+            // --- S1
+            JPanel scannerPanel = new JPanel(new BorderLayout(0, 5));
+            scannerPanel.setBackground(Color.pink);
+            JLabel scannerLabel = new JLabel("Quelltext:");
+            JTextArea scannerArea = new JTextArea();
+            scannerArea.setLineWrap(true);
+            scannerArea.setWrapStyleWord(true);
+            scannerArea.setText("Hier Code");
+            
+            JButton scanButton = new JButton("Code Scannen");
+            
+            scannerPanel.add(scannerLabel, BorderLayout.NORTH);
+            scannerPanel.add(new JScrollPane(scannerArea), BorderLayout.CENTER);
+            scannerPanel.add(scanButton, BorderLayout.SOUTH);
 
-       // --- GRAMMATIK-REGELN ---
+            // --- S2
+            JPanel parserPanel = new JPanel(new BorderLayout(0, 5));
+            parserPanel.setBackground(Color.pink);
+            JLabel parserLabel = new JLabel("Tokens");
+            JTextArea parserArea = new JTextArea();
+            parserArea.setLineWrap(true);
+            parserArea.setWrapStyleWord(true);
+            parserArea.setText("typ name klammerauf klammerzu blockauf\n" +
+                              "typ name zuweisungsoperator zahl punktoperator zahl semikolon\n" +
+                              "typ name zuweisungsoperator zahl punktoperator zahl semikolon\n" +
+                              "blockzu");
 
+            JButton parseButton = new JButton("Tokens Parsen");
+            
+            parserPanel.add(parserLabel, BorderLayout.NORTH);
+            parserPanel.add(new JScrollPane(parserArea), BorderLayout.CENTER);
+            parserPanel.add(parseButton, BorderLayout.SOUTH);
 
-       public void parseMethode() {
-           System.out.println("Parse: Methode");
-           consume(TokenType.TYP);
-           consume(TokenType.NAME);
-           consume(TokenType.KLAMMER_AUF);
-           consume(TokenType.KLAMMER_ZU);
-           parseBlock();
-       }
-       // block öffnen
-       public void parseBlock() {
-           System.out.println("Parse: Block");
-           consume(TokenType.BLOCK_AUF);
+            // --- S3
+            JPanel ausgabePanel = new JPanel(new BorderLayout(0, 5));
+            ausgabePanel.setBackground(Color.pink);
+            JLabel ausgabeLabel = new JLabel("3. Konsole / Log:");
+            JTextArea ausgabeArea = new JTextArea();
+            ausgabeArea.setEditable(false);
+            ausgabeArea.setBackground(new Color(240, 240, 240)); 
+            
+            ausgabePanel.add(ausgabeLabel, BorderLayout.NORTH);
+            ausgabePanel.add(new JScrollPane(ausgabeArea), BorderLayout.CENTER);
+            
+            // Alle drei Spalten zum Hauptpanel hinzufügen
+            centerPanel.add(scannerPanel);
+            centerPanel.add(parserPanel);
+            centerPanel.add(ausgabePanel);
+            
+            frame.add(centerPanel, BorderLayout.CENTER);
+            
+            // --- ACTION LISTENER FÜR SCAN BUTTON (Platzhalter) ---
+            scanButton.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    ausgabeArea.setText("--- SCANNER GESTARTET ---\n\n" +
+                                        "Eingelesener Text:\n" + scannerArea.getText());
+                }
+            });
 
+            // --- ACTION LISTENER FÜR PARSE BUTTON ---
+            parseButton.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    String input = parserArea.getText();
+                    StringBuilder log = new StringBuilder();
 
-           //block schließen
-           while (!match(TokenType.BLOCK_ZU) && !match(TokenType.EOF)) {
-               parseZuweisung();
-           }
+                    try {
+                        List<Token> tokenStream = tokenize(input);
+                        log.append("Erkannte Tokens: \n").append(tokenStream).append("\n\n");
 
+                        Parser parser = new Parser(tokenStream, log);
+                        parser.parseMethode();
 
-           consume(TokenType.BLOCK_ZU);
-       }
+                        log.append("Erfolg");
+                    } catch (Exception ex) {
+                        log.append("Fehler: ").append(ex.getMessage());
+                    }
+                    
+                    ausgabeArea.setText(log.toString());
+                }
+            });
 
-
-       public void parseZuweisung() {
-           System.out.println("Parse: Zuweisung");
-
-
-           //optionaler typ
-           if (match(TokenType.TYP)) {
-               consume(TokenType.TYP);
-           }
-
-
-           consume(TokenType.NAME);
-           consume(TokenType.ZUWEISUNGS_OP);
-           parseAusdruck();
-           consume(TokenType.SEMIKOLON);
-       }
-
-
-       public void parseAusdruck() {
-           parseTerm();
-       }
-
-
-       public void parseTerm() {
-           parseFaktor();
-           if (match(TokenType.PUNKT)) {
-               consume(TokenType.PUNKT);
-               parseTerm();
-           }
-       }
-
-
-       public void parseFaktor() {
-           if (match(TokenType.NAME)) {
-               consume(TokenType.NAME);
-           } else if (match(TokenType.ZAHL)) {
-               consume(TokenType.ZAHL);
-           } else if (match(TokenType.KLAMMER_AUF)) {
-               consume(TokenType.KLAMMER_AUF);
-               parseAusdruck();
-               consume(TokenType.KLAMMER_ZU);
-           } else {
-               throw new RuntimeException("Syntaxfehler im Faktor: Unerwartetes Token " + current().type);
-           }
-       }
-   }
-
-
-   //hier um andere regeln erweitern bitttteeee (;
-
-
-   // Test datei hier schnitstelle einbauen für simple logig
-   public static void main(String[] args) {
-       // Dein exakter String aus der Anforderung
-       String input = "typ name klammerauf klammerzu blockauf " +
-               "typ name zuweisungsoperator zahl punktoperator zahl semikolon " +
-               "typ name zuweisungsoperator zahl punktoperator zahl semikolon " +
-               "blockzu";
-       //ersetzen mit ausgabe an user ui
-       System.out.println("Eingabe-String:\n" + input + "\n");
-
-
-       try {
-           // 1. Lexer wandelt String in Tokens um ==> code ersetzen kofi??
-           List<Token> tokenStream = tokenize(input);
-           System.out.println("Erzeugte Tokens: " + tokenStream + "\n");
-
-
-           // 2. Parser prüft die Grammatik
-           Parser parser = new Parser(tokenStream);
-           parser.parseMethode();
-
-
-           System.out.println("\nErfolg! Der String entspricht der Grammatik.");
-       } catch (Exception e) {
-           System.err.println("\nFehler: " + e.getMessage());
-       }
-   }
+            frame.setVisible(true);
+        });
+    }
 }
-//           __
-//          /  \  .___
-//         /    \/\  /\
-//,       /     |  \/  \
-//        \  MW | WM   /
-//      ==|_    |     _|==
-//          \../_\.../
-//            \###/
-

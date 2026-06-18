@@ -5,7 +5,7 @@ import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ParserApp {
+public class final {
 
     // --- 1. TOKENS ---
     enum TokenType {

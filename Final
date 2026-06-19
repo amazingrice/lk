@@ -148,7 +148,7 @@ public class ParserApp {
         }
     }
 
-    // --- 4. GUI SETUP ---
+
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             JFrame frame = new JFrame("Scanner und Parser App");
@@ -159,11 +159,9 @@ public class ParserApp {
             frame.getContentPane().setBackground(Color.pink);
             ((JPanel)frame.getContentPane()).setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-            // Layout auf 3 Spalten geändert (1 Zeile, 3 Spalten)
             JPanel centerPanel = new JPanel(new GridLayout(1, 3, 15, 0));
             centerPanel.setBackground(Color.pink);
 
-            // --- S1
             JPanel scannerPanel = new JPanel(new BorderLayout(0, 5));
             scannerPanel.setBackground(Color.pink);
             JLabel scannerLabel = new JLabel("Quelltext:");
@@ -178,7 +176,6 @@ public class ParserApp {
             scannerPanel.add(new JScrollPane(scannerArea), BorderLayout.CENTER);
             scannerPanel.add(scanButton, BorderLayout.SOUTH);
 
-            // --- S2
             JPanel parserPanel = new JPanel(new BorderLayout(0, 5));
             parserPanel.setBackground(Color.pink);
             JLabel parserLabel = new JLabel("Tokens");
@@ -196,7 +193,6 @@ public class ParserApp {
             parserPanel.add(new JScrollPane(parserArea), BorderLayout.CENTER);
             parserPanel.add(parseButton, BorderLayout.SOUTH);
 
-            // --- S3
             JPanel ausgabePanel = new JPanel(new BorderLayout(0, 5));
             ausgabePanel.setBackground(Color.pink);
             JLabel ausgabeLabel = new JLabel("3. Konsole / Log:");
@@ -204,26 +200,26 @@ public class ParserApp {
             ausgabeArea.setEditable(false);
             ausgabeArea.setBackground(new Color(240, 240, 240)); 
             
+            JButton dontclickButton = new JButton("Don't click me ;)");
+            
             ausgabePanel.add(ausgabeLabel, BorderLayout.NORTH);
             ausgabePanel.add(new JScrollPane(ausgabeArea), BorderLayout.CENTER);
+            ausgabePanel.add(dontclickButton, BorderLayout.SOUTH);
             
-            // Alle drei Spalten zum Hauptpanel hinzufügen
             centerPanel.add(scannerPanel);
             centerPanel.add(parserPanel);
             centerPanel.add(ausgabePanel);
             
             frame.add(centerPanel, BorderLayout.CENTER);
             
-            // --- ACTION LISTENER FÜR SCAN BUTTON (Platzhalter) ---
             scanButton.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    ausgabeArea.setText("--- SCANNER GESTARTET ---\n\n" +
+                    ausgabeArea.setText("~ SCANNER GESTARTET ~\n\n" +
                                         "Eingelesener Text:\n" + scannerArea.getText());
                 }
             });
 
-            // --- ACTION LISTENER FÜR PARSE BUTTON ---
             parseButton.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
@@ -231,11 +227,11 @@ public class ParserApp {
                     StringBuilder log = new StringBuilder();
 
                     try {
-                        List<Token> tokenStream = tokenize(input);
-                        log.append("Erkannte Tokens: \n").append(tokenStream).append("\n\n");
+                        //List<Token> tokenStream = tokenize(input);
+                        //log.append("Erkannte Tokens: \n").append(tokenStream).append("\n\n");
 
-                        Parser parser = new Parser(tokenStream, log);
-                        parser.parseMethode();
+                        //Parser parser = new Parser(tokenStream, log);
+                        //parser.parseMethode();
 
                         log.append("Erfolg");
                     } catch (Exception ex) {
@@ -245,7 +241,21 @@ public class ParserApp {
                     ausgabeArea.setText(log.toString());
                 }
             });
-
+            
+            dontclickButton.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                try {
+                    if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
+                        Desktop.getDesktop().browse(new URI("https://www.youtube.com/watch?v=dQw4w9WgXcQ"));
+                    } else {
+                        System.out.println("Desktop browsing is not supported on this platform.");
+                    }
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                }
+            }
+            });
             frame.setVisible(true);
         });
     }

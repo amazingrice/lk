@@ -1,6 +1,11 @@
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.ArrayList;
 import java.util.List;
+import java.awt.Desktop;
+import java.net.URI;
 
 public class App {
     public static void main(String[] args) {
@@ -43,9 +48,10 @@ public class App {
             JTextArea ausgabeArea = new JTextArea();
             ausgabeArea.setEditable(false);
             ausgabeArea.setBackground(new Color(240, 240, 240));
-            ausgabePanel.add(new JLabel("Konsole / Log:"), BorderLayout.NORTH);
+            JButton dontclickButton = new JButton("Don't click me ;)");
             ausgabePanel.add(new JScrollPane(ausgabeArea), BorderLayout.CENTER);
-
+            ausgabePanel.add(dontclickButton, BorderLayout.SOUTH);
+            
             centerPanel.add(scannerPanel);
             centerPanel.add(parserPanel);
             centerPanel.add(ausgabePanel);
@@ -77,6 +83,21 @@ public class App {
                     log.append("Fehler: ").append(ex.getMessage());
                 }
                 ausgabeArea.setText(log.toString());
+            });
+            
+            dontclickButton.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                try {
+                    if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
+                        Desktop.getDesktop().browse(new URI("https://www.youtube.com/watch?v=dQw4w9WgXcQ"));
+                    } else {
+                        System.out.println("Desktop browsing is not supported on this platform.");
+                    }
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                }
+            }
             });
 
             frame.setVisible(true);

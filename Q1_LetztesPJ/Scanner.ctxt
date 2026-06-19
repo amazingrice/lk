@@ -1,0 +1,13 @@
+#BlueJ class context
+comment0.target=Scanner
+comment1.params=source
+comment1.target=java.util.List\ tokenize(java.lang.String)
+comment2.params=
+comment2.target=char\ peek()
+comment3.params=
+comment3.target=Token\ scanString()
+comment4.params=
+comment4.target=Token\ scanNumber()
+comment5.params=
+comment5.target=Token\ scanIdentifierOrKeyword()
+numComments=6

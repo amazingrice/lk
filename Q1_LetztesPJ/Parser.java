@@ -28,21 +28,48 @@ public class Parser {
         return current().type == type;
     }
 
+    // Hilfsmethode für den Blick nach vorne (Lookahead)
+    private boolean peekMatch(int offset, TokenType type) {
+        int targetPos = pos + offset;
+        if (targetPos >= tokens.size()) return type == TokenType.EOF;
+        return tokens.get(targetPos).type == type;
+    }
+
     public void parseMethode() {
         log.append("Parse: Methode\n");
-        consume(TokenType.TYP);
+        
+        // Akzeptiert TYP (int, String...) ODER VOID
+        if (match(TokenType.TYP)) {
+            consume(TokenType.TYP);
+        } else {
+            consume(TokenType.VOID);
+        }
+        
         consume(TokenType.NAME);
         consume(TokenType.KLAMMER_AUF);
         consume(TokenType.KLAMMER_ZU);
         parseBlock();
-        consume(TokenType.EOF);
+        
+        // Falls noch eine Methode im Token-Stream folgt, parsen wir diese ebenfalls
+        if (!match(TokenType.EOF)) {
+            parseMethode();
+        } else {
+            consume(TokenType.EOF);
+        }
     }
 
     public void parseBlock() {
         log.append("Parse: Block\n");
         consume(TokenType.BLOCK_AUF);
         while (!match(TokenType.BLOCK_ZU) && !match(TokenType.EOF)) {
-            parseZuweisung();
+            // Wenn es mit einem Typ beginnt ODER ein Name gefolgt von '=' ist, ist es eine Zuweisung
+            if (match(TokenType.TYP) || (match(TokenType.NAME) && peekMatch(1, TokenType.ZUWEISUNGS_OP))) {
+                parseZuweisung();
+            } else {
+                // Ansonsten ist es ein eigenständiger Ausdruck (z.B. ein Methodenaufruf)
+                parseAusdruck();
+                consume(TokenType.SEMIKOLON);
+            }
         }
         consume(TokenType.BLOCK_ZU);
     }
@@ -58,19 +85,37 @@ public class Parser {
         consume(TokenType.SEMIKOLON);
     }
 
-    public void parseAusdruck() { parseTerm(); }
+    public void parseAusdruck() { 
+        parseTerm(); 
+    }
 
     public void parseTerm() {
         parseFaktor();
-        if (match(TokenType.PUNKT)) {
-            consume(TokenType.PUNKT);
-            parseTerm();
+        // Schleife erlaubt verkettete Punkte (System.out.println) ODER mathematische Operatoren (+)
+        while (match(TokenType.PUNKT) || match(TokenType.ARITHMETIK_OP)) {
+            if (match(TokenType.PUNKT)) {
+                consume(TokenType.PUNKT);
+            } else {
+                consume(TokenType.ARITHMETIK_OP);
+            }
+            parseFaktor();
         }
     }
 
     public void parseFaktor() {
         if (match(TokenType.NAME)) {
             consume(TokenType.NAME);
+            
+            // Wenn nach dem Namen eine offene Klammer kommt, ist es ein Funktions-/Methodenaufruf
+            if (match(TokenType.KLAMMER_AUF)) {
+                consume(TokenType.KLAMMER_AUF);
+                // Falls die Klammer nicht sofort schließt, parsen wir den Inhalt (die Parameter)
+                if (!match(TokenType.KLAMMER_ZU)) {
+                    parseAusdruck();
+                }
+                consume(TokenType.KLAMMER_ZU);
+            }
+            
         } else if (match(TokenType.ZAHL)) {
             consume(TokenType.ZAHL);
         } else if (match(TokenType.KLAMMER_AUF)) {

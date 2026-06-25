@@ -20,7 +20,7 @@ public class App {
             JPanel centerPanel = new JPanel(new GridLayout(1, 3, 15, 0));
             centerPanel.setBackground(Color.pink);
 
-            // Spalte 1: Quelltext
+            //Quelltext
             JPanel scannerPanel = new JPanel(new BorderLayout(0, 5));
             scannerPanel.setBackground(Color.pink);
             JTextArea scannerArea = new JTextArea("int main() { x = 10; }");
@@ -31,7 +31,7 @@ public class App {
             scannerPanel.add(new JScrollPane(scannerArea), BorderLayout.CENTER);
             scannerPanel.add(scanButton, BorderLayout.SOUTH);
 
-            // Spalte 2: Tokens
+            //Tokens
             JPanel parserPanel = new JPanel(new BorderLayout(0, 5));
             parserPanel.setBackground(Color.pink);
             JTextArea parserArea = new JTextArea();
@@ -42,7 +42,7 @@ public class App {
             parserPanel.add(new JScrollPane(parserArea), BorderLayout.CENTER);
             parserPanel.add(parseButton, BorderLayout.SOUTH);
 
-            // Spalte 3: Log
+            //Log
             JPanel ausgabePanel = new JPanel(new BorderLayout(0, 5));
             ausgabePanel.setBackground(Color.pink);
             JTextArea ausgabeArea = new JTextArea();
@@ -57,7 +57,7 @@ public class App {
             centerPanel.add(ausgabePanel);
             frame.add(centerPanel, BorderLayout.CENTER);
 
-            // Connection: Scanner
+            //Scanner
             scanButton.addActionListener(e -> {
                 try {
                     List<Token> tokens = Scanner.tokenize(scannerArea.getText());
@@ -68,11 +68,9 @@ public class App {
                 }
             });
 
-            // Connection: Parser
+            //Parser
             parseButton.addActionListener(e -> {
                 String input = parserArea.getText();
-                // Note: This logic assumes tokens are in list string format [TOKEN(text), ...]
-                // If you want to use raw text, you'd need to re-parse the string.
                 StringBuilder log = new StringBuilder();
                 try {
                     List<Token> tokenStream = Scanner.tokenize(scannerArea.getText());
